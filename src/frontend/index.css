@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Font: Mona Sans (variable) ─────────────────────────────── */
+@font-face {
+  font-family: "Mona Sans";
+  src: url("/assets/fonts/MonaSans[wdth,wght].woff2") format("woff2 supports variations"),
+       url("/assets/fonts/MonaSans[wdth,wght].woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Font: Sora (variable) ──────────────────────────────────── */
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora[wght].woff2") format("woff2 supports variations"),
+       url("/assets/fonts/Sora[wght].woff2") format("woff2-variations");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Font: Geist Mono (variable) ────────────────────────────── */
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono[wght].woff2") format("woff2 supports variations"),
+       url("/assets/fonts/GeistMono[wght].woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* ── Dark-only palette ─────────────────────────── */
+    --background:         0.08 0.02 280;
+    --foreground:         0.95 0.01 280;
+    --card:               0.12 0.04 275;
+    --card-foreground:    0.95 0.01 280;
+    --popover:            0.12 0.04 275;
+    --popover-foreground: 0.95 0.01 280;
+
+    /* Neon purple */
+    --primary:            0.55 0.28 290;
+    --primary-foreground: 0.98 0.005 280;
+
+    --secondary:          0.18 0.06 280;
+    --secondary-foreground: 0.88 0.02 280;
+
+    --muted:              0.16 0.04 278;
+    --muted-foreground:   0.65 0.05 280;
+
+    --accent:             0.55 0.28 290;
+    --accent-foreground:  0.98 0.005 280;
+
+    --destructive:        0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border:             0.28 0.08 285;
+    --input:              0.18 0.06 280;
+    --ring:               0.55 0.28 290;
+
+    /* Glow purple */
+    --glow:               0.72 0.18 295;
+
+    --chart-1: 0.55 0.28 290;
+    --chart-2: 0.72 0.18 295;
+    --chart-3: 0.45 0.22 300;
+    --chart-4: 0.65 0.15 285;
+    --chart-5: 0.80 0.12 280;
+
+    --sidebar: 0.10 0.03 278;
+    --sidebar-foreground: 0.95 0.01 280;
+    --sidebar-primary: 0.55 0.28 290;
+    --sidebar-primary-foreground: 0.98 0.005 280;
+    --sidebar-accent: 0.18 0.06 280;
+    --sidebar-accent-foreground: 0.88 0.02 280;
+    --sidebar-border: 0.28 0.08 285;
+    --sidebar-ring: 0.55 0.28 290;
+  }
+
+  /* Force dark mode always */
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Sora", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Mona Sans", sans-serif;
+    font-variation-settings: "wdth" 125;
+  }
+}
+
+/* ─── Custom Utilities ───────────────────────────────────────── */
+@layer utilities {
+  .text-glow {
+    color: oklch(var(--glow));
+    text-shadow:
+      0 0 20px oklch(var(--primary) / 0.8),
+      0 0 40px oklch(var(--primary) / 0.5),
+      0 0 80px oklch(var(--primary) / 0.3);
+  }
+
+  .text-gradient-purple {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--glow)) 0%,
+      oklch(var(--primary)) 50%,
+      oklch(0.65 0.22 295) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: oklch(var(--card) / 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid oklch(var(--border) / 0.5);
+    box-shadow:
+      0 8px 40px oklch(0 0 0 / 0.55),
+      inset 0 1px 0 oklch(0.95 0.02 280 / 0.08),
+      inset 0 -1px 0 oklch(0 0 0 / 0.2);
+  }
+
+  .glass-strong {
+    background: oklch(var(--card) / 0.75);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid oklch(var(--border) / 0.7);
+    box-shadow:
+      0 16px 60px oklch(0 0 0 / 0.65),
+      inset 0 1px 0 oklch(0.95 0.02 280 / 0.12),
+      inset 0 -1px 0 oklch(0 0 0 / 0.25);
+  }
+
+  .neon-border {
+    border: 1px solid oklch(var(--primary) / 0.55);
+    box-shadow:
+      0 0 15px oklch(var(--primary) / 0.25),
+      0 0 40px oklch(var(--primary) / 0.1),
+      inset 0 0 15px oklch(var(--primary) / 0.06),
+      inset 0 1px 0 oklch(var(--primary) / 0.15);
+  }
+
+  /* Contact form monospace label utility */
+  .label-mono {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .neon-glow-hover {
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  .neon-glow-hover:hover {
+    border-color: oklch(var(--primary) / 0.9);
+    box-shadow:
+      0 0 20px oklch(var(--primary) / 0.4),
+      0 0 40px oklch(var(--primary) / 0.2),
+      0 8px 30px oklch(0 0 0 / 0.5);
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  .section-title {
+    font-family: "Mona Sans", sans-serif;
+    font-variation-settings: "wdth" 125;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ─── Animated Gradient Background ──────────────────────────── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-gradient {
+  background: linear-gradient(
+    135deg,
+    oklch(0.07 0.02 280) 0%,
+    oklch(0.10 0.06 290) 25%,
+    oklch(0.08 0.03 275) 50%,
+    oklch(0.12 0.07 300) 75%,
+    oklch(0.07 0.02 280) 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+}
+
+/* ─── Floating cube drift ────────────────────────────────────── */
+@keyframes float1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%  { transform: translateY(-20px) rotate(5deg); }
+  66%  { transform: translateY(10px) rotate(-3deg); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%  { transform: translateY(15px) rotate(-4deg); }
+  66%  { transform: translateY(-25px) rotate(6deg); }
+}
+
+/* ─── Stat counter glow pulse ────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px oklch(var(--primary) / 0.3); }
+  50%  { box-shadow: 0 0 30px oklch(var(--primary) / 0.6), 0 0 60px oklch(var(--primary) / 0.2); }
+}
+
+.glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* ─── Custom scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--primary) / 0.4);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--primary) / 0.7);
+}
+
+/* ─── Selection ──────────────────────────────────────────────── */
+::selection {
+  background: oklch(var(--primary) / 0.3);
+  color: oklch(var(--foreground));
+}
+
+/* ─── Accordion ──────────────────────────────────────────────── */
+@keyframes accordion-down {
+  from { height: 0; }
+  to   { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to   { height: 0; }
+}
