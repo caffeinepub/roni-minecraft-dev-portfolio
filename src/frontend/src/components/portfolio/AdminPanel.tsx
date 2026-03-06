@@ -61,7 +61,11 @@ function TransmissionsTab({
   const [error, setError] = useState("");
 
   const fetchMessages = useCallback(async () => {
-    if (!actor) return; // stay in loading state until actor is ready
+    if (!actor) {
+      setLoading(false);
+      setError("Network connection not ready. Please retry.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -71,8 +75,10 @@ function TransmissionsTab({
         Number(b.timestamp - a.timestamp),
       );
       setMessages(sorted);
-    } catch {
-      setError("Failed to load transmissions.");
+      setError("");
+    } catch (err) {
+      console.error("Failed to load transmissions:", err);
+      setError("Failed to load transmissions. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -225,15 +231,21 @@ function GalleryTab({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchImages = useCallback(async () => {
-    if (!actor) return; // stay in loading state until actor is ready
+    if (!actor) {
+      setLoading(false);
+      setError("Network connection not ready. Please retry.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
       const imgs = await actor.getAllImages();
       const sorted = [...imgs].sort((a, b) => Number(a.order - b.order));
       setImages(sorted);
-    } catch {
-      setError("Failed to load gallery images.");
+      setError("");
+    } catch (err) {
+      console.error("Failed to load gallery images:", err);
+      setError("Failed to load gallery images. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -903,14 +915,20 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCurrentImage = useCallback(async () => {
-    if (!actor) return; // stay in loading state until actor is ready
+    if (!actor) {
+      setLoading(false);
+      setError("Network connection not ready. Please retry.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
       const img = await actor.getAboutImage();
       setCurrentImage(img ?? DEFAULT_AVATAR);
-    } catch {
-      setError("Failed to load current image.");
+      setError("");
+    } catch (err) {
+      console.error("Failed to load profile image:", err);
+      setError("Failed to load current image. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -1262,7 +1280,7 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
 /* ─── Main AdminPanel ────────────────────────────────────────── */
 export default function AdminPanel({ open, onClose }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("transmissions");
-  const { actor } = useActor();
+  const { actor, isFetching } = useActor();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // ESC to close
@@ -1469,68 +1487,85 @@ export default function AdminPanel({ open, onClose }: AdminPanelProps) {
 
             {/* Content area */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
-              <AnimatePresence mode="wait">
-                {tab === "transmissions" && (
-                  <motion.div
-                    key="transmissions"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <MessageSquare
-                        size={14}
-                        style={{ color: "oklch(var(--primary) / 0.7)" }}
-                      />
-                      <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
-                        Incoming Transmissions
-                      </span>
-                    </div>
-                    <TransmissionsTab actor={actor} />
-                  </motion.div>
-                )}
-                {tab === "gallery" && (
-                  <motion.div
-                    key="gallery"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <Image
-                        size={14}
-                        style={{ color: "oklch(var(--primary) / 0.7)" }}
-                      />
-                      <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
-                        Showcase Images
-                      </span>
-                    </div>
-                    <GalleryTab actor={actor} />
-                  </motion.div>
-                )}
-                {tab === "about" && (
-                  <motion.div
-                    key="about"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <UserCircle
-                        size={14}
-                        style={{ color: "oklch(var(--primary) / 0.7)" }}
-                      />
-                      <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
-                        Profile Image
-                      </span>
-                    </div>
-                    <AboutTab actor={actor} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Actor connecting state — show full-panel spinner while actor initialises */}
+              {isFetching && !actor ? (
+                <div
+                  data-ocid="admin.panel.loading_state"
+                  className="flex flex-col items-center justify-center py-20 gap-4"
+                >
+                  <Loader2
+                    size={28}
+                    className="animate-spin"
+                    style={{ color: "oklch(var(--glow))" }}
+                  />
+                  <p className="text-sm font-mono tracking-widest text-muted-foreground uppercase">
+                    Connecting to network...
+                  </p>
+                </div>
+              ) : (
+                <AnimatePresence mode="wait">
+                  {tab === "transmissions" && (
+                    <motion.div
+                      key="transmissions"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <MessageSquare
+                          size={14}
+                          style={{ color: "oklch(var(--primary) / 0.7)" }}
+                        />
+                        <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
+                          Incoming Transmissions
+                        </span>
+                      </div>
+                      <TransmissionsTab actor={actor} />
+                    </motion.div>
+                  )}
+                  {tab === "gallery" && (
+                    <motion.div
+                      key="gallery"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <Image
+                          size={14}
+                          style={{ color: "oklch(var(--primary) / 0.7)" }}
+                        />
+                        <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
+                          Showcase Images
+                        </span>
+                      </div>
+                      <GalleryTab actor={actor} />
+                    </motion.div>
+                  )}
+                  {tab === "about" && (
+                    <motion.div
+                      key="about"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <UserCircle
+                          size={14}
+                          style={{ color: "oklch(var(--primary) / 0.7)" }}
+                        />
+                        <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
+                          Profile Image
+                        </span>
+                      </div>
+                      <AboutTab actor={actor} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           </motion.div>
         </motion.div>

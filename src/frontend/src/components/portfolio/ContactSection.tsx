@@ -49,9 +49,10 @@ export default function ContactSection() {
     setErrorMsg("");
 
     try {
-      if (actor) {
-        await actor.submitMessage(name.trim(), contactInfo, message.trim());
+      if (!actor) {
+        throw new Error("Network not ready");
       }
+      await actor.submitMessage(name.trim(), contactInfo, message.trim());
       setFormState("success");
       setName("");
       setEmailVal("");
@@ -59,7 +60,7 @@ export default function ContactSection() {
       setMessage("");
     } catch (err) {
       console.error("Contact form error:", err);
-      setErrorMsg("Transmission failed. Please try again.");
+      setErrorMsg("Transmission failed. Please try again in a moment.");
       setFormState("error");
     }
   };

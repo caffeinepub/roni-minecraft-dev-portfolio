@@ -51,32 +51,59 @@ function GalleryItem({
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.5, delay: index * 0.07 }}
-      className="relative group rounded-2xl overflow-hidden aspect-[16/10] border border-border/40 w-full text-left"
+      className="relative group aspect-[16/10] w-full text-left"
+      style={{ padding: "6px" }}
       onClick={() => onOpen(index)}
       aria-label={`Open ${img.caption} in fullscreen`}
     >
-      <img
-        src={img.src}
-        alt={img.caption}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
+      {/* Minecraft-style pixel frame — 4 corner brackets */}
+      {/* Top-left */}
+      <span
+        className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-violet-500/50 group-hover:border-violet-400/90 transition-colors duration-300 pointer-events-none"
+        style={{ borderRadius: "2px 0 0 0" }}
+      />
+      {/* Top-right */}
+      <span
+        className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-violet-500/50 group-hover:border-violet-400/90 transition-colors duration-300 pointer-events-none"
+        style={{ borderRadius: "0 2px 0 0" }}
+      />
+      {/* Bottom-left */}
+      <span
+        className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-violet-500/50 group-hover:border-violet-400/90 transition-colors duration-300 pointer-events-none"
+        style={{ borderRadius: "0 0 0 2px" }}
+      />
+      {/* Bottom-right */}
+      <span
+        className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-violet-500/50 group-hover:border-violet-400/90 transition-colors duration-300 pointer-events-none"
+        style={{ borderRadius: "0 0 2px 0" }}
       />
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3">
-        <ZoomIn size={28} className="text-glow" />
-        <span className="text-sm font-semibold tracking-widest uppercase text-foreground">
-          {img.caption}
-        </span>
+      {/* Inner image container */}
+      <div className="relative w-full h-full overflow-hidden rounded-xl border border-border/40 group-hover:border-violet-500/40 transition-colors duration-300">
+        <img
+          src={img.src}
+          alt={img.caption}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+          loading="lazy"
+        />
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3">
+          <ZoomIn size={28} className="text-glow" />
+          <span className="text-sm font-semibold tracking-widest uppercase text-foreground">
+            {img.caption}
+          </span>
+        </div>
+
+        {/* Purple glow on hover */}
+        <div
+          className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            boxShadow:
+              "inset 0 0 0 1px oklch(0.55 0.28 290 / 0.6), 0 0 20px oklch(0.55 0.28 290 / 0.2)",
+          }}
+        />
       </div>
-
-      {/* Glow border on hover */}
-      <div
-        className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          boxShadow: "inset 0 0 0 1px oklch(0.55 0.28 290 / 0.6)",
-        }}
-      />
     </motion.button>
   );
 }

@@ -12,6 +12,7 @@ import ProjectsSection from "./components/portfolio/ProjectsSection";
 import ServicesSection from "./components/portfolio/ServicesSection";
 import SkillsSection from "./components/portfolio/SkillsSection";
 import StatsSection from "./components/portfolio/StatsSection";
+import VoxelBackground from "./components/portfolio/VoxelBackground";
 
 type View = "portfolio" | "login" | "admin";
 
@@ -33,6 +34,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
+      {/* Global voxel background — fixed layer behind all sections */}
+      <VoxelBackground />
       <Navigation />
       <main>
         <HeroSection />

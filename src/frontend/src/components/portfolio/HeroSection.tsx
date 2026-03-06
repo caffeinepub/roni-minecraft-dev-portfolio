@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useRef } from "react";
+import HeroVoxelSilhouette from "./HeroVoxelSilhouette";
 import MinecraftCubes from "./MinecraftCubes";
 import ParticleCanvas from "./ParticleCanvas";
 
@@ -128,6 +129,9 @@ export default function HeroSection() {
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient"
     >
+      {/* Voxel terrain silhouette — blocky mountain shapes behind title */}
+      <HeroVoxelSilhouette />
+
       {/* Particle canvas layer */}
       <ParticleCanvas />
 

@@ -55,6 +55,20 @@ const cardVariants: Variants = {
 
 export default function ProjectsSection() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLDivElement>,
+    idx: number,
+  ) => {
+    if (hoveredIdx !== idx) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = ((e.clientX - cx) / (rect.width / 2)) * 6; // max ±6deg
+    const dy = ((e.clientY - cy) / (rect.height / 2)) * -6;
+    setTilt({ x: dy, y: dx });
+  };
 
   return (
     <section id="projects" className="py-28 px-6 max-w-6xl mx-auto">
@@ -88,31 +102,60 @@ export default function ProjectsSection() {
         {projects.map((project, i) => {
           const Icon = project.icon;
           const isHovered = hoveredIdx === i;
+          const cardTiltX = isHovered ? tilt.x : 0;
+          const cardTiltY = isHovered ? tilt.y : 0;
           return (
             <motion.div
               key={project.title}
               variants={cardVariants}
               onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
+              onMouseLeave={() => {
+                setHoveredIdx(null);
+                setTilt({ x: 0, y: 0 });
+              }}
+              onMouseMove={(e) => handleMouseMove(e, i)}
               style={{
                 transform: isHovered
-                  ? "translateY(-8px) scale(1.02) perspective(800px) rotateX(2deg)"
-                  : "translateY(0) scale(1) perspective(800px) rotateX(0deg)",
-                transition: "transform 0.3s ease",
+                  ? `perspective(700px) rotateX(${cardTiltX}deg) rotateY(${cardTiltY}deg) translateY(-10px) scale(1.03)`
+                  : "perspective(700px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1)",
+                transition: "transform 0.25s ease",
+                transformStyle: "preserve-3d",
               }}
               className="glass rounded-2xl p-6 border border-border/40 cursor-default group relative overflow-hidden"
             >
-              {/* Hover glow */}
+              {/* Hover glow — top fade */}
               <div
                 className={`absolute inset-0 rounded-2xl transition-opacity duration-300 pointer-events-none ${
                   isHovered ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
                   background:
-                    "radial-gradient(circle at 50% 0%, oklch(0.55 0.28 290 / 0.15) 0%, transparent 70%)",
-                  boxShadow: "inset 0 0 0 1px oklch(0.55 0.28 290 / 0.4)",
+                    "radial-gradient(circle at 50% 0%, oklch(0.55 0.28 290 / 0.18) 0%, transparent 70%)",
+                  boxShadow: "inset 0 0 0 1px oklch(0.55 0.28 290 / 0.45)",
                 }}
               />
+
+              {/* Minecraft block face edge lines — visible on hover */}
+              <div
+                className={`absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
+              >
+                <span
+                  className="absolute top-0 left-0 w-3 h-3 border-t border-l border-violet-400/60"
+                  style={{ borderRadius: "2px 0 0 0" }}
+                />
+                <span
+                  className="absolute top-0 right-0 w-3 h-3 border-t border-r border-violet-400/60"
+                  style={{ borderRadius: "0 2px 0 0" }}
+                />
+                <span
+                  className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-violet-400/60"
+                  style={{ borderRadius: "0 0 0 2px" }}
+                />
+                <span
+                  className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-violet-400/60"
+                  style={{ borderRadius: "0 0 2px 0" }}
+                />
+              </div>
 
               {/* Icon */}
               <div
