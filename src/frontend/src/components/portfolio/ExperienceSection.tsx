@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import { Briefcase, Star } from "lucide-react";
+import { motion } from "motion/react";
 
 const experiences = [
   {
@@ -11,7 +11,7 @@ const experiences = [
   {
     role: "Admin",
     org: "RazeMC",
-    desc: "Led administrative duties including plugin configuration and server management.",
+    desc: "Led administrative duties including server management.",
     current: false,
   },
   {

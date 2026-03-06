@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
 import { useCallback, useRef } from "react";
 import MinecraftCubes from "./MinecraftCubes";
 import ParticleCanvas from "./ParticleCanvas";

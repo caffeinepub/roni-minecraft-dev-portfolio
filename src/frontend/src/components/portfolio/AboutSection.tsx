@@ -1,5 +1,9 @@
-import { type Variants, motion } from "framer-motion";
 import { User } from "lucide-react";
+import { type Variants, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useActor } from "../../hooks/useActor";
+
+const DEFAULT_AVATAR = "/assets/generated/roni-avatar.dim_400x400.jpg";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
@@ -11,6 +15,27 @@ const fadeUp: Variants = {
 };
 
 export default function AboutSection() {
+  const { actor, isFetching } = useActor();
+  const [avatarSrc, setAvatarSrc] = useState<string>(DEFAULT_AVATAR);
+
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    let cancelled = false;
+    actor
+      .getAboutImage()
+      .then((img) => {
+        if (!cancelled && img) {
+          setAvatarSrc(img);
+        }
+      })
+      .catch(() => {
+        // fall back to default on error — no-op
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, isFetching]);
+
   return (
     <section id="about" className="py-28 px-6 max-w-5xl mx-auto">
       <motion.div
@@ -51,7 +76,7 @@ export default function AboutSection() {
                 }}
               >
                 <img
-                  src="/assets/generated/roni-avatar.dim_400x400.jpg"
+                  src={avatarSrc}
                   alt="Roni — Minecraft Server Developer"
                   className="w-full h-full object-cover"
                 />

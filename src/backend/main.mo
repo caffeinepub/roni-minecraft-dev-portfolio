@@ -1,12 +1,17 @@
 import Int "mo:core/Int";
-import Time "mo:core/Time";
 import Array "mo:core/Array";
+import Time "mo:core/Time";
 import Map "mo:core/Map";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
+
+
 import Runtime "mo:core/Runtime";
 
+// Add migration with-clause
+
 actor {
+  // Types
   type ContactMessage = {
     name : Text;
     email : Text;
@@ -20,6 +25,20 @@ actor {
     };
   };
 
+  type GalleryImage = {
+    id : Nat;
+    url : Text;
+    caption : Text;
+    order : Nat;
+  };
+
+  module GalleryImage {
+    public func compare(image1 : GalleryImage, image2 : GalleryImage) : Order.Order {
+      Int.compare(image1.order, image2.order);
+    };
+  };
+
+  // ContactMessage storage and functions
   var nextMessageId = 0;
   let messages = Map.empty<Nat, ContactMessage>();
 
@@ -55,5 +74,66 @@ actor {
       }
     );
     messagesByName.sort().reverse();
+  };
+
+  // GalleryImage storage and functions
+  var nextImageId = 7;
+  let images = Map.empty<Nat, GalleryImage>();
+
+  public shared ({ caller }) func addImage(url : Text, caption : Text) : async Nat {
+    let id = nextImageId;
+    nextImageId += 1;
+
+    let newImage : GalleryImage = {
+      id;
+      url;
+      caption;
+      order = id;
+    };
+
+    images.add(id, newImage);
+    id;
+  };
+
+  public shared ({ caller }) func removeImage(id : Nat) : async () {
+    switch (images.get(id)) {
+      case (null) {
+        Runtime.trap("Image with id " # id.toText() # " does not exist");
+      };
+      case (_) {
+        images.remove(id);
+      };
+    };
+  };
+
+  public shared ({ caller }) func editImage(id : Nat, url : Text, caption : Text) : async () {
+    switch (images.get(id)) {
+      case (null) {
+        Runtime.trap("Image with id " # id.toText() # " does not exist");
+      };
+      case (?existingImage) {
+        let updatedImage : GalleryImage = {
+          existingImage with
+          url;
+          caption;
+        };
+        images.add(id, updatedImage);
+      };
+    };
+  };
+
+  public query ({ caller }) func getAllImages() : async [GalleryImage] {
+    images.values().toArray().sort();
+  };
+
+  // About image storage and functions
+  stable var aboutImage : ?Text = null;
+
+  public shared ({ caller }) func setAboutImage(url : Text) : async () {
+    aboutImage := ?url;
+  };
+
+  public query ({ caller }) func getAboutImage() : async ?Text {
+    aboutImage;
   };
 };

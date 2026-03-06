@@ -16,11 +16,23 @@ export interface ContactMessage {
   'message' : string,
   'timestamp' : Time,
 }
+export interface GalleryImage {
+  'id' : bigint,
+  'url' : string,
+  'order' : bigint,
+  'caption' : string,
+}
 export type Time = bigint;
 export interface _SERVICE {
+  'addImage' : ActorMethod<[string, string], bigint>,
+  'editImage' : ActorMethod<[bigint, string, string], undefined>,
+  'getAboutImage' : ActorMethod<[], [] | [string]>,
+  'getAllImages' : ActorMethod<[], Array<GalleryImage>>,
   'getAllMessages' : ActorMethod<[], Array<ContactMessage>>,
   'getAllMessagesByName' : ActorMethod<[string], Array<ContactMessage>>,
   'getMessageById' : ActorMethod<[bigint], ContactMessage>,
+  'removeImage' : ActorMethod<[bigint], undefined>,
+  'setAboutImage' : ActorMethod<[string], undefined>,
   'submitMessage' : ActorMethod<[string, string, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

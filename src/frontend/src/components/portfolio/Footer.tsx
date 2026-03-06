@@ -1,3 +1,5 @@
+import { Lock } from "lucide-react";
+
 const footerLinks = [
   { label: "Home", href: "#hero", ocid: "footer.home.link" },
   { label: "Experience", href: "#experience", ocid: "footer.experience.link" },
@@ -7,7 +9,11 @@ const footerLinks = [
   { label: "Contact", href: "#contact", ocid: "footer.contact.link" },
 ];
 
-export default function Footer() {
+interface FooterProps {
+  onAdminOpen?: () => void;
+}
+
+export default function Footer({ onAdminOpen }: FooterProps) {
   const year = new Date().getFullYear();
   const scrollTo = (href: string) => {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
@@ -76,6 +82,22 @@ export default function Footer() {
           </a>
         </p>
       </div>
+
+      {/* Discreet admin link — subtle but findable */}
+      {onAdminOpen && (
+        <button
+          type="button"
+          data-ocid="footer.admin.open_modal_button"
+          onClick={onAdminOpen}
+          className="absolute bottom-3 right-5 flex items-center gap-1.5 opacity-20 hover:opacity-60 transition-opacity duration-300 focus-visible:opacity-60 focus-visible:outline-none rounded px-2 py-1 group"
+          aria-label="Admin login"
+        >
+          <Lock size={10} className="text-muted-foreground" />
+          <span className="text-xs text-muted-foreground font-mono tracking-wider">
+            Admin
+          </span>
+        </button>
+      )}
     </footer>
   );
 }

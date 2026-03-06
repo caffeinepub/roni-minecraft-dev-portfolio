@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import { Code2, Users } from "lucide-react";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 interface Skill {
@@ -10,17 +10,17 @@ interface Skill {
 const devSkills: Skill[] = [
   { label: "Plugin Configuration", percent: 90 },
   { label: "Server Optimization", percent: 88 },
-  { label: "Permissions Setup", percent: 85 },
+  { label: "Permissions Setup", percent: 100 },
   { label: "Economy Systems", percent: 80 },
   { label: "PvP Setup", percent: 92 },
   { label: "Lifesteal & Headsteal Systems", percent: 87 },
 ];
 
 const mgmtSkills: Skill[] = [
-  { label: "Staff Recruitment", percent: 85 },
-  { label: "Ticket Handling", percent: 90 },
-  { label: "Community Moderation", percent: 88 },
-  { label: "Event Management", percent: 82 },
+  { label: "Staff Recruitment", percent: 100 },
+  { label: "Ticket Handling", percent: 100 },
+  { label: "Community Moderation", percent: 100 },
+  { label: "Event Management", percent: 100 },
 ];
 
 function SkillBar({ label, percent, delay }: Skill & { delay: number }) {

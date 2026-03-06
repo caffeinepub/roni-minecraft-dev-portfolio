@@ -8,6 +8,12 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const GalleryImage = IDL.Record({
+  'id' : IDL.Nat,
+  'url' : IDL.Text,
+  'order' : IDL.Nat,
+  'caption' : IDL.Text,
+});
 export const Time = IDL.Int;
 export const ContactMessage = IDL.Record({
   'name' : IDL.Text,
@@ -17,6 +23,10 @@ export const ContactMessage = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  'addImage' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+  'editImage' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+  'getAboutImage' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+  'getAllImages' : IDL.Func([], [IDL.Vec(GalleryImage)], ['query']),
   'getAllMessages' : IDL.Func([], [IDL.Vec(ContactMessage)], ['query']),
   'getAllMessagesByName' : IDL.Func(
       [IDL.Text],
@@ -24,12 +34,20 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getMessageById' : IDL.Func([IDL.Nat], [ContactMessage], ['query']),
+  'removeImage' : IDL.Func([IDL.Nat], [], []),
+  'setAboutImage' : IDL.Func([IDL.Text], [], []),
   'submitMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const GalleryImage = IDL.Record({
+    'id' : IDL.Nat,
+    'url' : IDL.Text,
+    'order' : IDL.Nat,
+    'caption' : IDL.Text,
+  });
   const Time = IDL.Int;
   const ContactMessage = IDL.Record({
     'name' : IDL.Text,
@@ -39,6 +57,10 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    'addImage' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+    'editImage' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+    'getAboutImage' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    'getAllImages' : IDL.Func([], [IDL.Vec(GalleryImage)], ['query']),
     'getAllMessages' : IDL.Func([], [IDL.Vec(ContactMessage)], ['query']),
     'getAllMessagesByName' : IDL.Func(
         [IDL.Text],
@@ -46,6 +68,8 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getMessageById' : IDL.Func([IDL.Nat], [ContactMessage], ['query']),
+    'removeImage' : IDL.Func([IDL.Nat], [], []),
+    'setAboutImage' : IDL.Func([IDL.Text], [], []),
     'submitMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   });
 };

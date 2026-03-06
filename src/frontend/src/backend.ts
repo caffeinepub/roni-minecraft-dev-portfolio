@@ -96,14 +96,82 @@ export interface ContactMessage {
     timestamp: Time;
 }
 export type Time = bigint;
+export interface GalleryImage {
+    id: bigint;
+    url: string;
+    order: bigint;
+    caption: string;
+}
 export interface backendInterface {
+    addImage(url: string, caption: string): Promise<bigint>;
+    editImage(id: bigint, url: string, caption: string): Promise<void>;
+    getAboutImage(): Promise<string | null>;
+    getAllImages(): Promise<Array<GalleryImage>>;
     getAllMessages(): Promise<Array<ContactMessage>>;
     getAllMessagesByName(name: string): Promise<Array<ContactMessage>>;
     getMessageById(id: bigint): Promise<ContactMessage>;
+    removeImage(id: bigint): Promise<void>;
+    setAboutImage(url: string): Promise<void>;
     submitMessage(name: string, email: string, message: string): Promise<void>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async addImage(arg0: string, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addImage(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addImage(arg0, arg1);
+            return result;
+        }
+    }
+    async editImage(arg0: bigint, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.editImage(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.editImage(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async getAboutImage(): Promise<string | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAboutImage();
+                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAboutImage();
+            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllImages(): Promise<Array<GalleryImage>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllImages();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllImages();
+            return result;
+        }
+    }
     async getAllMessages(): Promise<Array<ContactMessage>> {
         if (this.processError) {
             try {
@@ -146,6 +214,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async removeImage(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.removeImage(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.removeImage(arg0);
+            return result;
+        }
+    }
+    async setAboutImage(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setAboutImage(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setAboutImage(arg0);
+            return result;
+        }
+    }
     async submitMessage(arg0: string, arg1: string, arg2: string): Promise<void> {
         if (this.processError) {
             try {
@@ -160,6 +256,9 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+}
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+    return value.length === 0 ? null : value[0];
 }
 export interface CreateActorOptions {
     agent?: Agent;

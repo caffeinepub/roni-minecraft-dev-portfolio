@@ -1,12 +1,12 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { Images, X, ZoomIn } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
+import type { GalleryImage } from "../../backend.d";
+import { useActor } from "../../hooks/useActor";
 
-const images = [
-  {
-    src: "/assets/generated/mc-spawn.dim_800x500.jpg",
-    caption: "Spawn Build",
-  },
+/* ─── Fallback images shown while actor loads or if no images exist ── */
+const FALLBACK_IMAGES: { src: string; caption: string }[] = [
+  { src: "/assets/generated/mc-spawn.dim_800x500.jpg", caption: "Spawn Build" },
   {
     src: "/assets/generated/mc-pvp-arena.dim_800x500.jpg",
     caption: "PvP Arena",
@@ -29,19 +29,23 @@ const images = [
   },
 ];
 
+interface DisplayImage {
+  src: string;
+  caption: string;
+}
+
 function GalleryItem({
   img,
   index,
   onOpen,
 }: {
-  img: { src: string; caption: string };
+  img: DisplayImage;
   index: number;
   onOpen: (i: number) => void;
 }) {
   return (
     <motion.button
       type="button"
-      key={img.src}
       data-ocid={`gallery.item.${index + 1}`}
       initial={{ opacity: 0, scale: 0.95 }}
       whileInView={{ opacity: 1, scale: 1 }}
@@ -77,11 +81,62 @@ function GalleryItem({
   );
 }
 
+/* ─── Loading skeleton ───────────────────────────────────────── */
+function GallerySkeleton() {
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {["sk1", "sk2", "sk3", "sk4", "sk5", "sk6"].map((sk, i) => (
+        <div
+          key={sk}
+          className="aspect-[16/10] rounded-2xl"
+          style={{
+            background: "oklch(0.12 0.04 280 / 0.6)",
+            border: "1px solid oklch(var(--border) / 0.3)",
+            animation: `pulse 2s ease-in-out ${i * 0.15}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function GallerySection() {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  // Always start with fallback images — they're shown until backend images load
+  const [displayImages, setDisplayImages] =
+    useState<DisplayImage[]>(FALLBACK_IMAGES);
+
+  const { actor, isFetching } = useActor();
 
   const closeLightbox = useCallback(() => setLightboxIdx(null), []);
 
+  // Load images from actor — replace fallbacks only when backend has real images
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    let cancelled = false;
+
+    actor
+      .getAllImages()
+      .then((imgs: GalleryImage[]) => {
+        if (cancelled) return;
+        if (imgs.length > 0) {
+          const sorted = [...imgs].sort((a, b) => Number(a.order - b.order));
+          setDisplayImages(
+            sorted.map((img) => ({ src: img.url, caption: img.caption })),
+          );
+        }
+        // If backend returned empty array, keep fallback images (no-op)
+      })
+      .catch(() => {
+        // On error, keep fallback images (no-op)
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, isFetching]);
+
+  // ESC to close lightbox
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeLightbox();
@@ -101,6 +156,9 @@ export default function GallerySection() {
       document.body.style.overflow = "";
     };
   }, [lightboxIdx]);
+
+  // Never show a skeleton — fallback images are always ready to display
+  const showSkeleton = false;
 
   return (
     <section id="gallery" className="py-28 px-6 max-w-6xl mx-auto">
@@ -122,20 +180,24 @@ export default function GallerySection() {
         <h2 className="section-title text-gradient-purple">Server Showcase</h2>
       </motion.div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {images.map((img, i) => (
-          <GalleryItem
-            key={img.src}
-            img={img}
-            index={i}
-            onOpen={setLightboxIdx}
-          />
-        ))}
-      </div>
+      {showSkeleton ? (
+        <GallerySkeleton />
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayImages.map((img, i) => (
+            <GalleryItem
+              key={`${img.src}-${i}`}
+              img={img}
+              index={i}
+              onOpen={setLightboxIdx}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Lightbox */}
       <AnimatePresence>
-        {lightboxIdx !== null && (
+        {lightboxIdx !== null && displayImages[lightboxIdx] && (
           <motion.div
             data-ocid="gallery.lightbox.modal"
             initial={{ opacity: 0 }}
@@ -155,13 +217,13 @@ export default function GallerySection() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={images[lightboxIdx].src}
-                alt={images[lightboxIdx].caption}
+                src={displayImages[lightboxIdx].src}
+                alt={displayImages[lightboxIdx].caption}
                 className="w-full rounded-2xl border border-primary/30 shadow-neon-lg"
               />
               <div className="absolute -bottom-10 left-0 right-0 text-center">
                 <span className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
-                  {images[lightboxIdx].caption}
+                  {displayImages[lightboxIdx].caption}
                 </span>
               </div>
 

@@ -1,4 +1,3 @@
-import { type Variants, motion } from "framer-motion";
 import {
   FolderGit2,
   Globe,
@@ -7,6 +6,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { type Variants, motion } from "motion/react";
 import { useState } from "react";
 
 const projects = [

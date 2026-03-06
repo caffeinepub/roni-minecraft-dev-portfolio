@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,15 +6,19 @@ import {
   Radio,
   Send,
 } from "lucide-react";
+import { motion } from "motion/react";
 import type React from "react";
 import { useRef, useState } from "react";
 import { useActor } from "../../hooks/useActor";
 
 type FormState = "idle" | "loading" | "success" | "error";
+type ContactMethod = "email" | "discord" | "both";
 
 export default function ContactSection() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
+  const [emailVal, setEmailVal] = useState("");
+  const [discordVal, setDiscordVal] = useState("");
   const [message, setMessage] = useState("");
   const [formState, setFormState] = useState<FormState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -24,18 +27,35 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) return;
+    if (!name.trim() || !message.trim()) return;
+
+    // Build the contact info string passed as "email" field
+    let contactInfo = "";
+    if (contactMethod === "email") {
+      if (!emailVal.trim()) return;
+      contactInfo = emailVal.trim();
+    } else if (contactMethod === "discord") {
+      if (!discordVal.trim()) return;
+      contactInfo = `Discord: ${discordVal.trim()}`;
+    } else {
+      if (!emailVal.trim() && !discordVal.trim()) return;
+      const parts: string[] = [];
+      if (emailVal.trim()) parts.push(emailVal.trim());
+      if (discordVal.trim()) parts.push(`Discord: ${discordVal.trim()}`);
+      contactInfo = parts.join(" | ");
+    }
 
     setFormState("loading");
     setErrorMsg("");
 
     try {
       if (actor) {
-        await actor.submitMessage(name.trim(), email.trim(), message.trim());
+        await actor.submitMessage(name.trim(), contactInfo, message.trim());
       }
       setFormState("success");
       setName("");
-      setEmail("");
+      setEmailVal("");
+      setDiscordVal("");
       setMessage("");
     } catch (err) {
       console.error("Contact form error:", err);
@@ -56,6 +76,21 @@ export default function ContactSection() {
   };
   const inputFocusClass =
     "focus:border-primary/80 focus:shadow-[0_0_0_2px_oklch(0.55_0.28_290/0.25),0_0_25px_oklch(0.55_0.28_290/0.2),inset_0_1px_0_oklch(0.95_0.01_280/0.05)]";
+
+  const methodBtnStyle = (active: boolean): React.CSSProperties =>
+    active
+      ? {
+          background:
+            "linear-gradient(135deg, oklch(0.38 0.32 292 / 0.5) 0%, oklch(0.52 0.30 288 / 0.35) 100%)",
+          border: "1px solid oklch(0.55 0.28 290 / 0.5)",
+          color: "oklch(var(--glow))",
+          boxShadow: "0 0 15px oklch(0.55 0.28 290 / 0.15)",
+        }
+      : {
+          background: "oklch(0.09 0.03 280 / 0.6)",
+          border: "1px solid oklch(0.28 0.08 285 / 0.4)",
+          color: "oklch(var(--muted-foreground))",
+        };
 
   return (
     <section id="contact" className="py-28 px-6 max-w-3xl mx-auto">
@@ -78,7 +113,8 @@ export default function ContactSection() {
           Let's Work Together
         </h2>
         <p className="mt-3 text-muted-foreground text-base">
-          Initialize a transmission and I'll respond within 24 hours.
+          Initialize a transmission and I'll respond within 24–48 hours via your
+          preferred channel.
         </p>
       </motion.div>
 
@@ -136,30 +172,83 @@ export default function ContactSection() {
             />
           </div>
 
-          {/* Email field */}
-          <div className="space-y-2">
-            <label
-              htmlFor="contact-email"
-              className="flex items-center gap-2 font-mono text-[10px] font-semibold tracking-[0.3em] uppercase text-glow"
-            >
+          {/* Contact method selector */}
+          <div className="space-y-3">
+            <p className="flex items-center gap-2 font-mono text-[10px] font-semibold tracking-[0.3em] uppercase text-glow">
               <span className="opacity-50 text-[9px]">02</span>
-              RETURN ADDRESS
+              CONTACT METHOD
               <span className="text-muted-foreground/60 font-normal tracking-normal">
-                / EMAIL
+                / HOW TO REACH YOU
               </span>
-            </label>
-            <input
-              id="contact-email"
-              data-ocid="contact.email.input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              autoComplete="email"
-              className={`${inputBase} ${inputFocusClass}`}
-              style={inputStyle}
-            />
+            </p>
+
+            {/* Method tabs */}
+            <div
+              className="flex gap-1 p-1 rounded-xl"
+              style={{
+                background: "oklch(0.07 0.02 280 / 0.8)",
+                border: "1px solid oklch(var(--border) / 0.4)",
+              }}
+            >
+              {(["email", "discord", "both"] as ContactMethod[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  data-ocid={`contact.method.${m}.tab`}
+                  onClick={() => setContactMethod(m)}
+                  className="flex-1 py-2 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  style={methodBtnStyle(contactMethod === m)}
+                >
+                  {m === "both" ? "Both" : m === "email" ? "Email" : "Discord"}
+                </button>
+              ))}
+            </div>
+
+            {/* Email input */}
+            {(contactMethod === "email" || contactMethod === "both") && (
+              <input
+                id="contact-email"
+                data-ocid="contact.email.input"
+                type="email"
+                value={emailVal}
+                onChange={(e) => setEmailVal(e.target.value)}
+                placeholder="your@email.com"
+                required={contactMethod === "email"}
+                autoComplete="email"
+                className={`${inputBase} ${inputFocusClass}`}
+                style={inputStyle}
+              />
+            )}
+
+            {/* Discord input */}
+            {(contactMethod === "discord" || contactMethod === "both") && (
+              <input
+                id="contact-discord"
+                data-ocid="contact.discord.input"
+                type="text"
+                value={discordVal}
+                onChange={(e) => setDiscordVal(e.target.value)}
+                placeholder="yourname or yourname#1234"
+                required={contactMethod === "discord"}
+                className={`${inputBase} ${inputFocusClass}`}
+                style={inputStyle}
+              />
+            )}
+
+            {/* Response time note */}
+            <p className="text-[11px] font-mono text-muted-foreground/60 flex items-center gap-1.5">
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: "oklch(var(--glow) / 0.7)" }}
+              />
+              You'll receive a reply within 24–48 hours via{" "}
+              {contactMethod === "email"
+                ? "your email"
+                : contactMethod === "discord"
+                  ? "Discord"
+                  : "email or Discord"}
+              .
+            </p>
           </div>
 
           {/* Message field */}
@@ -209,7 +298,7 @@ export default function ContactSection() {
             >
               <CheckCircle2 size={16} className="text-glow flex-shrink-0" />
               <p className="text-sm text-glow font-medium">
-                Transmission received. I'll be in touch shortly.
+                Transmission received. Expect a reply within 24–48 hours.
               </p>
             </div>
           )}
