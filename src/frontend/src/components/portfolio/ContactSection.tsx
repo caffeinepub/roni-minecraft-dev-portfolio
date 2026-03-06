@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import type React from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActor } from "../../hooks/useActor";
 
 type FormState = "idle" | "loading" | "success" | "error";
@@ -24,6 +24,11 @@ export default function ContactSection() {
   const [errorMsg, setErrorMsg] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const { actor } = useActor();
+  // Keep a ref so the submit handler's polling loop always sees the latest actor value
+  const actorRef = useRef(actor);
+  useEffect(() => {
+    actorRef.current = actor;
+  }, [actor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,11 +53,28 @@ export default function ContactSection() {
     setFormState("loading");
     setErrorMsg("");
 
-    try {
-      if (!actor) {
-        throw new Error("Network not ready");
+    // Resolve actor: use the current render value first, then fall back to polling via ref
+    let resolvedActor = actor ?? actorRef.current;
+    if (!resolvedActor) {
+      const deadline = Date.now() + 15000;
+      while (!resolvedActor && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 400));
+        resolvedActor = actorRef.current;
       }
-      await actor.submitMessage(name.trim(), contactInfo, message.trim());
+    }
+
+    if (!resolvedActor) {
+      setErrorMsg("Network not ready. Please wait a moment and try again.");
+      setFormState("error");
+      return;
+    }
+
+    try {
+      await resolvedActor.submitMessage(
+        name.trim(),
+        contactInfo,
+        message.trim(),
+      );
       setFormState("success");
       setName("");
       setEmailVal("");
@@ -60,7 +82,8 @@ export default function ContactSection() {
       setMessage("");
     } catch (err) {
       console.error("Contact form error:", err);
-      setErrorMsg("Transmission failed. Please try again in a moment.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(`Transmission failed: ${msg}`);
       setFormState("error");
     }
   };

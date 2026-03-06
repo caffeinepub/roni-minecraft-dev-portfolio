@@ -4,14 +4,12 @@ import Time "mo:core/Time";
 import Map "mo:core/Map";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
-
-
+import Migration "migration";
 import Runtime "mo:core/Runtime";
 
-// Add migration with-clause
-
+(with migration = Migration.run)
 actor {
-  // Types
+  // Contact Messages
   type ContactMessage = {
     name : Text;
     email : Text;
@@ -25,20 +23,6 @@ actor {
     };
   };
 
-  type GalleryImage = {
-    id : Nat;
-    url : Text;
-    caption : Text;
-    order : Nat;
-  };
-
-  module GalleryImage {
-    public func compare(image1 : GalleryImage, image2 : GalleryImage) : Order.Order {
-      Int.compare(image1.order, image2.order);
-    };
-  };
-
-  // ContactMessage storage and functions
   var nextMessageId = 0;
   let messages = Map.empty<Nat, ContactMessage>();
 
@@ -49,7 +33,6 @@ actor {
       message;
       timestamp = Time.now();
     };
-
     messages.add(nextMessageId, newMessage);
     nextMessageId += 1;
   };
@@ -60,23 +43,32 @@ actor {
 
   public query ({ caller }) func getMessageById(id : Nat) : async ContactMessage {
     switch (messages.get(id)) {
-      case (null) {
-        Runtime.trap("Message with id " # id.toText() # " does not exist");
-      };
+      case (null) { Runtime.trap("Message with id " # id.toText() # " does not exist") };
       case (?message) { message };
     };
   };
 
   public query ({ caller }) func getAllMessagesByName(name : Text) : async [ContactMessage] {
     let messagesByName = messages.values().toArray().filter(
-      func(message) {
-        message.name == name;
-      }
+      func(message) { message.name == name }
     );
     messagesByName.sort().reverse();
   };
 
-  // GalleryImage storage and functions
+  // Gallery Images
+  type GalleryImage = {
+    id : Nat;
+    url : Text;
+    caption : Text;
+    order : Nat;
+  };
+
+  module GalleryImage {
+    public func compare(img1 : GalleryImage, img2 : GalleryImage) : Order.Order {
+      Int.compare(img1.order, img2.order);
+    };
+  };
+
   var nextImageId = 7;
   let images = Map.empty<Nat, GalleryImage>();
 
@@ -97,24 +89,17 @@ actor {
 
   public shared ({ caller }) func removeImage(id : Nat) : async () {
     switch (images.get(id)) {
-      case (null) {
-        Runtime.trap("Image with id " # id.toText() # " does not exist");
-      };
-      case (_) {
-        images.remove(id);
-      };
+      case (null) { Runtime.trap("Image with id " # id.toText() # " does not exist") };
+      case (_) { images.remove(id) };
     };
   };
 
   public shared ({ caller }) func editImage(id : Nat, url : Text, caption : Text) : async () {
     switch (images.get(id)) {
-      case (null) {
-        Runtime.trap("Image with id " # id.toText() # " does not exist");
-      };
+      case (null) { Runtime.trap("Image with id " # id.toText() # " does not exist") };
       case (?existingImage) {
         let updatedImage : GalleryImage = {
-          existingImage with
-          url;
+          existingImage with url;
           caption;
         };
         images.add(id, updatedImage);
@@ -126,8 +111,8 @@ actor {
     images.values().toArray().sort();
   };
 
-  // About image storage and functions
-  stable var aboutImage : ?Text = null;
+  // About Image
+  var aboutImage : ?Text = null;
 
   public shared ({ caller }) func setAboutImage(url : Text) : async () {
     aboutImage := ?url;

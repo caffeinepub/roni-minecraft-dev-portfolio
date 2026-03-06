@@ -2,13 +2,16 @@ import {
   AlertCircle,
   CheckCircle2,
   Edit2,
+  Globe,
   Image,
   Link,
   Loader2,
   MessageSquare,
+  Monitor,
   Plus,
   Radio,
   RefreshCw,
+  Server,
   Trash2,
   Upload,
   UserCircle,
@@ -21,7 +24,7 @@ import type { ContactMessage, GalleryImage } from "../../backend.d";
 import { useActor } from "../../hooks/useActor";
 
 /* ─── Types ──────────────────────────────────────────────────── */
-type Tab = "transmissions" | "gallery" | "about";
+type Tab = "transmissions" | "gallery" | "website-showcase" | "about";
 type GalleryFormMode = "add" | "edit";
 type InputMode = "url" | "upload";
 
@@ -61,11 +64,7 @@ function TransmissionsTab({
   const [error, setError] = useState("");
 
   const fetchMessages = useCallback(async () => {
-    if (!actor) {
-      setLoading(false);
-      setError("Network connection not ready. Please retry.");
-      return;
-    }
+    if (!actor) return;
     setLoading(true);
     setError("");
     try {
@@ -78,7 +77,8 @@ function TransmissionsTab({
       setError("");
     } catch (err) {
       console.error("Failed to load transmissions:", err);
-      setError("Failed to load transmissions. Please retry.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Failed to load transmissions. ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,8 @@ function TransmissionsTab({
     fetchMessages();
   }, [fetchMessages]);
 
-  if (loading) {
+  // Show spinner while either loading or waiting for actor
+  if (loading || !actor) {
     return (
       <div
         data-ocid="admin.transmissions.loading_state"
@@ -113,7 +114,7 @@ function TransmissionsTab({
         className="flex flex-col items-center justify-center py-20 gap-4"
       >
         <AlertCircle size={28} className="text-destructive" />
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-destructive text-center max-w-sm">{error}</p>
         <button
           type="button"
           data-ocid="admin.transmissions.button"
@@ -231,11 +232,7 @@ function GalleryTab({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchImages = useCallback(async () => {
-    if (!actor) {
-      setLoading(false);
-      setError("Network connection not ready. Please retry.");
-      return;
-    }
+    if (!actor) return;
     setLoading(true);
     setError("");
     try {
@@ -245,7 +242,8 @@ function GalleryTab({
       setError("");
     } catch (err) {
       console.error("Failed to load gallery images:", err);
-      setError("Failed to load gallery images. Please retry.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Failed to load gallery images. ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -390,7 +388,7 @@ function GalleryTab({
     backdropFilter: "blur(12px)",
   };
 
-  if (loading) {
+  if (loading || !actor) {
     return (
       <div
         data-ocid="admin.gallery.loading_state"
@@ -415,7 +413,7 @@ function GalleryTab({
         className="flex flex-col items-center justify-center py-20 gap-4"
       >
         <AlertCircle size={28} className="text-destructive" />
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-destructive text-center max-w-sm">{error}</p>
         <button
           type="button"
           data-ocid="admin.gallery.button"
@@ -915,11 +913,7 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCurrentImage = useCallback(async () => {
-    if (!actor) {
-      setLoading(false);
-      setError("Network connection not ready. Please retry.");
-      return;
-    }
+    if (!actor) return;
     setLoading(true);
     setError("");
     try {
@@ -928,7 +922,8 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
       setError("");
     } catch (err) {
       console.error("Failed to load profile image:", err);
-      setError("Failed to load current image. Please retry.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Failed to load current image. ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -1002,7 +997,7 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
     backdropFilter: "blur(12px)",
   };
 
-  if (loading) {
+  if (loading || !actor) {
     return (
       <div
         data-ocid="admin.about.loading_state"
@@ -1027,7 +1022,7 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
         className="flex flex-col items-center justify-center py-20 gap-4"
       >
         <AlertCircle size={28} className="text-destructive" />
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-destructive text-center max-w-sm">{error}</p>
         <button
           type="button"
           data-ocid="admin.about.button"
@@ -1277,11 +1272,154 @@ function AboutTab({ actor }: { actor: ReturnType<typeof useActor>["actor"] }) {
   );
 }
 
+/* ─── Website Showcase Tab (read-only) ───────────────────────── */
+const WEBSITE_PROJECTS = [
+  {
+    title: "Jerry SMP Website",
+    type: "Minecraft Server Website",
+    role: "Developer",
+  },
+  {
+    title: "Minecraft Server Websites",
+    type: "Web Development",
+    role: "Developer",
+  },
+];
+
+function WebsiteShowcaseTab() {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Info banner */}
+      <div
+        className="flex items-start gap-3 rounded-xl p-4"
+        style={{
+          background: "oklch(0.55 0.28 290 / 0.07)",
+          border: "1px solid oklch(0.55 0.28 290 / 0.25)",
+        }}
+      >
+        <Globe
+          size={15}
+          style={{
+            color: "oklch(var(--glow) / 0.8)",
+            marginTop: 1,
+            flexShrink: 0,
+          }}
+        />
+        <p className="text-xs font-mono tracking-wide text-muted-foreground/80 leading-relaxed">
+          Website projects are managed in code.{" "}
+          <span style={{ color: "oklch(var(--glow) / 0.9)" }}>
+            Contact the developer to add, edit, or remove entries.
+          </span>
+        </p>
+      </div>
+
+      {/* Project cards */}
+      <div className="flex flex-col gap-3">
+        {WEBSITE_PROJECTS.map((project, i) => (
+          <motion.div
+            key={project.title}
+            data-ocid={`admin.website-showcase.item.${i + 1}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.07 }}
+            className="rounded-xl p-5 relative overflow-hidden"
+            style={{
+              background: "oklch(0.10 0.04 280 / 0.7)",
+              border: "1px solid oklch(var(--border) / 0.6)",
+              boxShadow: "0 4px 20px oklch(0 0 0 / 0.3)",
+            }}
+          >
+            {/* Top glow line */}
+            <div
+              className="absolute top-0 left-0 right-0 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, oklch(0.55 0.28 290 / 0.4) 50%, transparent 100%)",
+              }}
+            />
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{
+                    background: "oklch(0.55 0.28 290 / 0.12)",
+                    border: "1px solid oklch(0.55 0.28 290 / 0.3)",
+                  }}
+                >
+                  <Monitor size={15} style={{ color: "oklch(var(--glow))" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground mb-2">
+                    {project.title}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono tracking-widest uppercase"
+                      style={{
+                        background: "oklch(0.55 0.28 290 / 0.12)",
+                        border: "1px solid oklch(0.55 0.28 290 / 0.3)",
+                        color: "oklch(var(--glow) / 0.9)",
+                      }}
+                    >
+                      {project.type}
+                    </span>
+                    <span
+                      className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono tracking-widest uppercase text-muted-foreground"
+                      style={{
+                        background: "oklch(0.12 0.03 280 / 0.6)",
+                        border: "1px solid oklch(var(--border) / 0.4)",
+                      }}
+                    >
+                      {project.role}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p
+              className="text-[10px] font-mono tracking-wide text-muted-foreground/60 mt-3 leading-relaxed"
+              style={{
+                paddingLeft: "3rem",
+              }}
+            >
+              Managed in code — contact developer to update.
+            </p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main AdminPanel ────────────────────────────────────────── */
 export default function AdminPanel({ open, onClose }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>("transmissions");
   const { actor, isFetching } = useActor();
   const panelRef = useRef<HTMLDivElement>(null);
+  const actorRef = useRef(actor);
+  const [actorTimedOut, setActorTimedOut] = useState(false);
+
+  // Keep actorRef current so the timeout callback can check latest value
+  useEffect(() => {
+    actorRef.current = actor;
+  }, [actor]);
+
+  // 15-second timeout for actor initialisation
+  // Reset timeout whenever panel opens or actor becomes available
+  useEffect(() => {
+    if (!open) return;
+    setActorTimedOut(false);
+    if (actor) return; // already ready, no need for timeout
+    const timer = setTimeout(() => {
+      // Only mark as timed out if actor still isn't available
+      if (!actorRef.current) {
+        setActorTimedOut(true);
+      }
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [open, actor]);
 
   // ESC to close
   useEffect(() => {
@@ -1441,7 +1579,7 @@ export default function AdminPanel({ open, onClose }: AdminPanelProps) {
               </button>
               <button
                 type="button"
-                data-ocid="admin.gallery.tab"
+                data-ocid="admin.server-showcase.tab"
                 onClick={() => setTab("gallery")}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest uppercase transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 style={
@@ -1458,8 +1596,30 @@ export default function AdminPanel({ open, onClose }: AdminPanelProps) {
                       }
                 }
               >
-                <Image size={13} />
-                Gallery
+                <Server size={13} />
+                Server
+              </button>
+              <button
+                type="button"
+                data-ocid="admin.website-showcase.tab"
+                onClick={() => setTab("website-showcase")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest uppercase transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                style={
+                  tab === "website-showcase"
+                    ? {
+                        background:
+                          "linear-gradient(135deg, oklch(0.38 0.32 292 / 0.5) 0%, oklch(0.52 0.30 288 / 0.35) 100%)",
+                        border: "1px solid oklch(0.55 0.28 290 / 0.5)",
+                        color: "oklch(var(--glow))",
+                        boxShadow: "0 0 15px oklch(0.55 0.28 290 / 0.15)",
+                      }
+                    : {
+                        color: "oklch(var(--muted-foreground))",
+                      }
+                }
+              >
+                <Monitor size={13} />
+                Websites
               </button>
               <button
                 type="button"
@@ -1488,20 +1648,47 @@ export default function AdminPanel({ open, onClose }: AdminPanelProps) {
             {/* Content area */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
               {/* Actor connecting state — show full-panel spinner while actor initialises */}
-              {isFetching && !actor ? (
-                <div
-                  data-ocid="admin.panel.loading_state"
-                  className="flex flex-col items-center justify-center py-20 gap-4"
-                >
-                  <Loader2
-                    size={28}
-                    className="animate-spin"
-                    style={{ color: "oklch(var(--glow))" }}
-                  />
-                  <p className="text-sm font-mono tracking-widest text-muted-foreground uppercase">
-                    Connecting to network...
-                  </p>
-                </div>
+              {!actor ? (
+                actorTimedOut && !isFetching ? (
+                  <div
+                    data-ocid="admin.panel.error_state"
+                    className="flex flex-col items-center justify-center py-20 gap-4"
+                  >
+                    <AlertCircle size={28} className="text-destructive" />
+                    <p className="text-sm text-destructive text-center max-w-xs">
+                      Could not connect to the network. Please check your
+                      connection and try again.
+                    </p>
+                    <button
+                      type="button"
+                      data-ocid="admin.panel.button"
+                      onClick={() => window.location.reload()}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono font-bold tracking-widest uppercase transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      style={{
+                        background: "oklch(0.55 0.28 290 / 0.15)",
+                        border: "1px solid oklch(0.55 0.28 290 / 0.4)",
+                        color: "oklch(var(--glow))",
+                      }}
+                    >
+                      <RefreshCw size={13} />
+                      Reload Page
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    data-ocid="admin.panel.loading_state"
+                    className="flex flex-col items-center justify-center py-20 gap-4"
+                  >
+                    <Loader2
+                      size={28}
+                      className="animate-spin"
+                      style={{ color: "oklch(var(--glow))" }}
+                    />
+                    <p className="text-sm font-mono tracking-widest text-muted-foreground uppercase">
+                      Connecting to network...
+                    </p>
+                  </div>
+                )
               ) : (
                 <AnimatePresence mode="wait">
                   {tab === "transmissions" && (
@@ -1533,15 +1720,35 @@ export default function AdminPanel({ open, onClose }: AdminPanelProps) {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center gap-2 mb-4">
-                        <Image
+                        <Server
                           size={14}
                           style={{ color: "oklch(var(--primary) / 0.7)" }}
                         />
                         <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
-                          Showcase Images
+                          Server Showcase Images
                         </span>
                       </div>
                       <GalleryTab actor={actor} />
+                    </motion.div>
+                  )}
+                  {tab === "website-showcase" && (
+                    <motion.div
+                      key="website-showcase"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <Monitor
+                          size={14}
+                          style={{ color: "oklch(var(--primary) / 0.7)" }}
+                        />
+                        <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
+                          Website Projects
+                        </span>
+                      </div>
+                      <WebsiteShowcaseTab />
                     </motion.div>
                   )}
                   {tab === "about" && (
